@@ -4,9 +4,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.walixiwa.m3u8downloader.tools.entity.M3U8Model;
-import com.walixiwa.m3u8downloader.tools.entity.TaskDeleteListener;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -94,7 +92,7 @@ public class M3U8Downloader {
         for (int i = 0; i < m3U8Model.getVideoTs2().size(); i++) {
             final String url = m3U8Model.getVideoTs2().get(i);
             final File localTsFile = new File(localFile + getTsName(m3U8Model.getVideoTs2().get(i)) + ".ts");//生成本地ts文件路径
-            final File localTMPFile = new File(localFile + getTsName(m3U8Model.getVideoTs2().get(i)) + ".ts");//生成本地downloadTMP文件路径
+            final File localTMPFile = new File(localFile + getTsName(m3U8Model.getVideoTs2().get(i)) + ".downloadTMP");//生成本地downloadTMP文件路径
             if (localTsFile.exists()) {
                 //已存在Ts文件则掠过
                 curLength = curLength + localTsFile.length();
@@ -104,7 +102,7 @@ public class M3U8Downloader {
                 fixedThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
-                        downloadFile(url, localTMPFile);
+                        downloadFile(url, localTMPFile,localTsFile);
                         count = count + 1;
                         if (downloadListener != null) {
                             downloadListener.onProgress(url, curLength, (int) (count / m3U8Model.getVideoTs2().size() * 100L));
@@ -137,7 +135,7 @@ public class M3U8Downloader {
         return isRunning;
     }
 
-    private void downloadFile(String link, File localFile) {
+    private void downloadFile(String link, File localFile,File localTsFile) {
         FileOutputStream fos = null;
         InputStream inputStream = null;
         try {
@@ -171,9 +169,8 @@ public class M3U8Downloader {
                 }
             }
         }
-        File newFile = new File(localFile.getAbsolutePath().replace(".downloadTMP", ".ts"));
-        if (newFile.exists()) {
-            localFile.renameTo(newFile);
+        if (localFile.exists()) {
+            localFile.renameTo(localTsFile);
         }
     }
 
@@ -205,7 +202,7 @@ public class M3U8Downloader {
     }
 
 
-    public void writeM3U8() {
+    private void writeM3U8() {
         String result = m3u8;
         for (int i = 0; i < m3U8Model.getVideoTs2().size(); i++) {
             String localTs = getTsName(m3U8Model.getVideoTs2().get(i)) + ".ts";
@@ -227,65 +224,12 @@ public class M3U8Downloader {
     }
 
 
-    public void deleteTask(final String delUrl, final TaskDeleteListener taskDeleteListener) {
-        if(delUrl.equals(url)){
+    public void deleteTask(String delUrl, TaskDeleteListener taskDeleteListener) {
+        if (delUrl.equals(url)) {
             stopDownload();
         }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                taskDeleteListener.onStart();
-                delAllFile(localFile + md5Format(delUrl) + "/");
-                taskDeleteListener.onFinish();
-            }
-        }).start();
-
+        String taskFile = localFile + md5Format(delUrl) + "/";
+        Tools.deleteTaskFile(taskFile, taskDeleteListener);
     }
 
-
-    public static boolean delAllFile(String path) {
-        boolean flag = false;
-        try {
-            File file = new File(path);
-            if (!file.exists()) {
-                return flag;
-            }
-            if (!file.isDirectory()) {
-                return flag;
-            }
-            String[] tempList = file.list();
-            File temp = null;
-            for (int i = 0; i < tempList.length; i++) {
-                if (path.endsWith(File.separator)) {
-                    temp = new File(path + tempList[i]);
-                } else {
-                    temp = new File(path + File.separator + tempList[i]);
-                }
-                if (temp.isFile()) {
-                    temp.delete();
-                }
-                if (temp.isDirectory()) {
-                    delAllFile(path + "/" + tempList[i]);//先删除文件夹里面的文件
-                    delFolder(path + "/" + tempList[i]);//再删除空文件夹
-                    flag = true;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            flag = false;
-        }
-        return flag;
-    }
-
-    private static void delFolder(String folderPath) {
-        try {
-            delAllFile(folderPath); //删除完里面所有内容
-            String filePath = folderPath;
-            filePath = filePath.toString();
-            File myFilePath = new File(filePath);
-            myFilePath.delete(); //删除空文件夹
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
