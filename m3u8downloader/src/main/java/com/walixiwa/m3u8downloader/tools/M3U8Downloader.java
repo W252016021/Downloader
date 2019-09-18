@@ -31,6 +31,8 @@ public class M3U8Downloader {
     private int threadCount = 3;
     private ExecutorService fixedThreadPool;
 
+    private boolean isRunning = false;
+
     public M3U8Downloader setUrl(String url) {
         this.url = url;
         return this;
@@ -77,6 +79,7 @@ public class M3U8Downloader {
     }
 
     private void startDownload() {
+        isRunning = true;
         count = 0;
         pause = false;
         curLength = 0;
@@ -125,10 +128,14 @@ public class M3U8Downloader {
                         downloadListener.onSuccess(url, localFile + "localVideo.m3u8");
                     }
                 }
+                isRunning = false;
             }
         }
     }
 
+    public boolean isRunning() {
+        return isRunning;
+    }
 
     private void downloadFile(String link, File localFile) {
         FileOutputStream fos = null;
