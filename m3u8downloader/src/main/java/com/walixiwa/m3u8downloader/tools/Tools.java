@@ -14,7 +14,9 @@ public class Tools {
         }).start();
     }
 
-
+    public static void deleteTaskFile(final String file){
+        delAllFile(file);
+    }
 
     private static boolean delAllFile(String path) {
         boolean flag = false;
