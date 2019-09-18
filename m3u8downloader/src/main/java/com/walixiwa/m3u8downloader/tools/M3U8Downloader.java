@@ -31,7 +31,6 @@ public class M3U8Downloader {
 
     private int threadCount = 3;
     private ExecutorService fixedThreadPool;
-
     private boolean isRunning = false;
 
     public M3U8Downloader setUrl(String url) {
@@ -84,7 +83,7 @@ public class M3U8Downloader {
         count = 0;
         pause = false;
         curLength = 0;
-        localFile = localFile + md5Format(m3u8) + "/";
+        localFile = localFile + md5Format(url) + "/";
         if (!new File(localFile).exists()) {
             new File(localFile).mkdirs();
         }
@@ -228,12 +227,15 @@ public class M3U8Downloader {
     }
 
 
-    public void deleteTask(final TaskDeleteListener taskDeleteListener) {
+    public void deleteTask(final String delUrl, final TaskDeleteListener taskDeleteListener) {
+        if(delUrl.equals(url)){
+            stopDownload();
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
                 taskDeleteListener.onStart();
-                delAllFile(localFile);
+                delAllFile(localFile + md5Format(delUrl) + "/");
                 taskDeleteListener.onFinish();
             }
         }).start();
