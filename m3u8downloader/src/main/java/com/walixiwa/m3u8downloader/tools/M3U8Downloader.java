@@ -231,6 +231,7 @@ public class M3U8Downloader {
             @Override
             public void run() {
                 if (delUrl.equals(url)) {
+                    stopDownload();
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
