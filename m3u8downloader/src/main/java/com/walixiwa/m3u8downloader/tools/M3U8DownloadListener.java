@@ -1,7 +1,7 @@
 package com.walixiwa.m3u8downloader.tools;
 
 public interface M3U8DownloadListener {
-    void onPreparing(String url);
+    void onPreparing(String url,String saveFile);
 
     void onStart(String url);
 

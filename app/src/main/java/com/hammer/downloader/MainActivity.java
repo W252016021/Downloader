@@ -19,7 +19,6 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity {
 
     private String url;
-    private M3U8Downloader m3U8Downloader = new M3U8Downloader();
 
     private TextView tv_info;
 
@@ -39,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 url = editText.getText().toString();
-                m3U8Downloader
+                M3U8Downloader.getInstance()
                         .setUrl(url)
                         .setThreadCount(10)
                         .setSaveFile(getDownloadPath(getApplicationContext()) + "/")
@@ -68,13 +67,9 @@ public class MainActivity extends AppCompatActivity {
 
                             }
 
-                            @Override
-                            public void onProgress(String url, long curLength, int progress) {
-                                Log.e("info", "onProgress: " + progress);
-                            }
 
                             @Override
-                            public void onDownloading(String url, final int curCount, final int totalCount) {
+                            public void onDownloading(String url, long c, final int curCount, final int totalCount) {
                                 Log.e("info", "正在下载：" + curCount + "|" + totalCount);
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -129,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.bn_pause).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                m3U8Downloader.stopDownload();
+                M3U8Downloader.getInstance().stopDownload();
             }
         });
     }

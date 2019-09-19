@@ -33,14 +33,24 @@ public class M3U8Downloader {
 
     private String localFile;
 
+    private static M3U8Downloader instance;
+
+    public static M3U8Downloader getInstance() {
+        if (instance == null) {
+            instance = new M3U8Downloader();
+        }
+        return instance;
+    }
+
     public M3U8Downloader setUrl(String url) {
         this.url = url;
         return this;
     }
 
     public void start() {
+        localFile = saveFile + md5Format(url) + "/";
         if (downloadListener != null) {
-            downloadListener.onPreparing(url);
+            downloadListener.onPreparing(url,localFile + "localVideo.m3u8");
         }
         new M3U8Parser().with(url).setCallBack(new M3U8Parser.CallBack() {
             @Override
@@ -83,7 +93,6 @@ public class M3U8Downloader {
         count = 0;
         pause = false;
         curLength = 0;
-        localFile = saveFile + md5Format(url) + "/";
         if (!new File(localFile).exists()) {
             new File(localFile).mkdirs();
         }
@@ -226,7 +235,7 @@ public class M3U8Downloader {
     }
 
 
-    public void deleteTask(final String delUrl,final String file, final TaskDeleteListener taskDeleteListener) {
+    public void deleteTask(final String delUrl, final String file, final TaskDeleteListener taskDeleteListener) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -239,7 +248,7 @@ public class M3U8Downloader {
                     }
                 }
 
-                Tools.deleteTaskFile(file,taskDeleteListener);
+                Tools.deleteTaskFile(file, taskDeleteListener);
                 Log.e("info", "run: finish");
             }
         }).start();
