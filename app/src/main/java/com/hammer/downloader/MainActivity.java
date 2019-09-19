@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
                         .setSaveFile(getDownloadPath(getApplicationContext()) + "/")
                         .setDownloadListener(new M3U8DownloadListener() {
                             @Override
-                            public void onPreparing(String url) {
+                            public void onPreparing(String url,String file) {
                                 Log.e("info", "解析资源文件");
                                 runOnUiThread(new Runnable() {
                                     @Override

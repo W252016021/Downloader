@@ -50,7 +50,7 @@ public class M3U8Downloader {
     public void start() {
         localFile = saveFile + md5Format(url) + "/";
         if (downloadListener != null) {
-            downloadListener.onPreparing(url,localFile + "localVideo.m3u8");
+            downloadListener.onPreparing(url, localFile + "localVideo.m3u8");
         }
         new M3U8Parser().with(url).setCallBack(new M3U8Parser.CallBack() {
             @Override
@@ -85,7 +85,9 @@ public class M3U8Downloader {
 
     public void stopDownload() {
         pause = true;
-        fixedThreadPool.shutdownNow();
+        if (fixedThreadPool != null) {
+            fixedThreadPool.shutdownNow();
+        }
     }
 
     private void startDownload() {
