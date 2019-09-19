@@ -45,6 +45,7 @@ public class Tools {
                     flag = true;
                 }
             }
+            file.delete();
         } catch (Exception e) {
             e.printStackTrace();
             flag = false;

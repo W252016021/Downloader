@@ -5,9 +5,8 @@ public interface M3U8DownloadListener {
 
     void onStart(String url);
 
-    void onDownloading(String url, int curCount, int totalCount);
+    void onDownloading(String url, long curLength, int curCount, int totalCount);
 
-    void onProgress(String url, long curLength, int progress);
 
     void onPause(String url);
 

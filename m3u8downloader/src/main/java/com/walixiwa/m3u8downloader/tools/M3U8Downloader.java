@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 public class M3U8Downloader {
     private M3U8DownloadListener downloadListener;
     private M3U8Model m3U8Model;
-    private String localFile;
+    private String saveFile;
     private int count = 0;
     private long curLength = 0;
     private String m3u8;
@@ -30,6 +30,8 @@ public class M3U8Downloader {
     private int threadCount = 3;
     private ExecutorService fixedThreadPool;
     private boolean isRunning = false;
+
+    private String localFile;
 
     public M3U8Downloader setUrl(String url) {
         this.url = url;
@@ -66,8 +68,8 @@ public class M3U8Downloader {
         return this;
     }
 
-    public M3U8Downloader setSaveFile(String localFile) {
-        this.localFile = localFile;
+    public M3U8Downloader setSaveFile(String saveFile) {
+        this.saveFile = saveFile;
         return this;
     }
 
@@ -81,7 +83,7 @@ public class M3U8Downloader {
         count = 0;
         pause = false;
         curLength = 0;
-        localFile = localFile + md5Format(url) + "/";
+        localFile = saveFile + md5Format(url) + "/";
         if (!new File(localFile).exists()) {
             new File(localFile).mkdirs();
         }
@@ -90,23 +92,22 @@ public class M3U8Downloader {
         }
         fixedThreadPool = Executors.newFixedThreadPool(threadCount);//设置线程池最大线程数
         for (int i = 0; i < m3U8Model.getVideoTs2().size(); i++) {
-            final String url = m3U8Model.getVideoTs2().get(i);
+            final String downUrl = m3U8Model.getVideoTs2().get(i);
             final File localTsFile = new File(localFile + getTsName(m3U8Model.getVideoTs2().get(i)) + ".ts");//生成本地ts文件路径
             final File localTMPFile = new File(localFile + getTsName(m3U8Model.getVideoTs2().get(i)) + ".downloadTMP");//生成本地downloadTMP文件路径
             if (localTsFile.exists()) {
                 //已存在Ts文件则掠过
                 curLength = curLength + localTsFile.length();
                 count = count + 1;
-                downloadListener.onDownloading(url, count, m3U8Model.getVideoTs2().size());
+                downloadListener.onDownloading(M3U8Downloader.this.url, curLength, count, m3U8Model.getVideoTs2().size());
             } else {
                 fixedThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
-                        downloadFile(url, localTMPFile,localTsFile);
+                        downloadFile(downUrl, localTMPFile, localTsFile);
                         count = count + 1;
                         if (downloadListener != null) {
-                            downloadListener.onProgress(url, curLength, (int) (count / m3U8Model.getVideoTs2().size() * 100L));
-                            downloadListener.onDownloading(url, count, m3U8Model.getVideoTs2().size());
+                            downloadListener.onDownloading(M3U8Downloader.this.url, curLength, count, m3U8Model.getVideoTs2().size());
                         }
                     }
                 });
@@ -135,7 +136,8 @@ public class M3U8Downloader {
         return isRunning;
     }
 
-    private void downloadFile(String link, File localFile,File localTsFile) {
+
+    private void downloadFile(String link, File localFile, File localTsFile) {
         FileOutputStream fos = null;
         InputStream inputStream = null;
         try {
@@ -224,16 +226,22 @@ public class M3U8Downloader {
     }
 
 
-    public void deleteTask(String delUrl, final TaskDeleteListener taskDeleteListener) {
+    public void deleteTask(final String delUrl, final TaskDeleteListener taskDeleteListener) {
         if (delUrl.equals(url)) {
             stopDownload();
         }
-        final String taskFile = localFile + md5Format(delUrl) + "/";
+        final String taskFile = saveFile + md5Format(delUrl) + "/";
         new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 taskDeleteListener.onStart();
-                Tools.deleteTaskFile(taskFile, taskDeleteListener);
+                Tools.deleteTaskFile(taskFile);
+                Log.e("info", "run: finish");
                 taskDeleteListener.onFinish();
             }
         }).start();
