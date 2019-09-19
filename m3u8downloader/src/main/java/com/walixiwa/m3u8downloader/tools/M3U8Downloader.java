@@ -226,23 +226,20 @@ public class M3U8Downloader {
     }
 
 
-    public void deleteTask(final String delUrl, final TaskDeleteListener taskDeleteListener) {
-        if (delUrl.equals(url)) {
-            stopDownload();
-        }
-        final String taskFile = saveFile + md5Format(delUrl) + "/";
+    public void deleteTask(final String delUrl,final String file, final TaskDeleteListener taskDeleteListener) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (delUrl.equals(url)) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                taskDeleteListener.onStart();
-                Tools.deleteTaskFile(taskFile);
+
+                Tools.deleteTaskFile(file,taskDeleteListener);
                 Log.e("info", "run: finish");
-                taskDeleteListener.onFinish();
             }
         }).start();
 
